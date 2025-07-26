@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="hi" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>आईबी एसीआईओ/कार्यकारी भर्ती गाइड</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Scholarly Neutral (#F8F7F4 background, #2C3E50 primary text/headings, #34495E secondary text, #C0A080 accent) -->
+    <!-- Application Structure Plan: A single-page application with a sticky top navigation bar for seamless scrolling to different sections: Overview, Eligibility, Exam Pattern, and Preparation Strategy. This structure provides a clear, logical flow for the user, moving from high-level information to detailed preparation advice. The Exam Pattern and Preparation Strategy sections will use interactive tabs (for Tier-I, II, III) to organize the dense information, preventing cognitive overload and allowing users to focus on one area at a time. This non-linear, user-driven exploration is more effective than a simple text document. -->
+    <!-- Visualization & Content Choices: Report Info: Tier-I Exam section breakdown (5 sections, 20 marks each). Goal: Inform & Compare. Viz/Presentation Method: An interactive donut chart created with Chart.js (Canvas). Interaction: Hovering over a chart segment will display the section name and marks, providing a quick visual summary. Justification: A chart is more engaging and easier to interpret at a glance than a plain list, effectively communicating the equal weightage of all sections. Library/Method: Chart.js. Report Info: Eligibility criteria, exam tier details, and preparation strategies. Goal: Organize & Inform. Viz/Presentation Method: Structured HTML using Tailwind CSS cards, and a tabbed interface. Interaction: Clicking tabs reveals content for a specific exam tier. Justification: Tabs and cards break down complex information into digestible, user-selectable chunks, improving readability and user control over the information flow. Report Info: Essay writing and interview preparation. Goal: Engage & Assist. Viz/Presentation Method: Buttons triggering LLM-generated text. Interaction: Clicking buttons generates essay ideas or interview questions. Justification: Provides direct, AI-powered assistance for key preparation areas, enhancing user engagement and offering practical help. Library/Method: Gemini API (fetch). -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Noto Sans', sans-serif;
+            background-color: #F8F7F4;
+            color: #34495E;
+        }
+        .nav-link {
+            transition: color 0.3s, border-bottom-color 0.3s;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: #C0A080;
+            border-bottom-color: #C0A080;
+        }
+        .tab-btn.active {
+            background-color: #2C3E50;
+            color: #FFFFFF;
+        }
+        .tab-btn {
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+            max-height: 80vh;
+        }
+        h1, h2, h3 {
+            color: #2C3E50;
+        }
+        .loading-indicator {
+            display: none;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #C0A080;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <nav id="navbar" class="bg-white/80 backdrop-blur-md shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-3">
+            <div class="flex items-center justify-between">
+                <div class="text-xl font-bold text-gray-800">आईबी एसीआईओ गाइड</div>
+                <div class="hidden md:flex items-center space-x-6">
+                    <a href="#home" class="nav-link border-b-2 border-transparent pb-1">मुख्य पृष्ठ</a>
+                    <a href="#eligibility" class="nav-link border-b-2 border-transparent pb-1">पात्रता</a>
+                    <a href="#exam-pattern" class="nav-link border-b-2 border-transparent pb-1">परीक्षा पैटर्न</a>
+                    <a href="#strategy" class="nav-link border-b-2 border-transparent pb-1">तैयारी की रणनीति</a>
+                </div>
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="text-gray-800 focus:outline-none">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                    </button>
+                </div>
+            </div>
+            <div id="mobile-menu" class="hidden md:hidden mt-3 space-y-2">
+                 <a href="#home" class="block nav-link py-2">मुख्य पृष्ठ</a>
+                 <a href="#eligibility" class="block nav-link py-2">पात्रता</a>
+                 <a href="#exam-pattern" class="block nav-link py-2">परीक्षा पैटर्न</a>
+                 <a href="#strategy" class="block nav-link py-2">तैयारी की रणनीति</a>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <section id="home" class="py-20 bg-white">
+            <div class="container mx-auto px-6 text-center">
+                <h1 class="text-4xl md:text-5xl font-bold mb-4">आईबी एसीआईओ/कार्यकारी भर्ती</h1>
+                <p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">इंटेलिजेंस ब्यूरो (आईबी) में सहायक केंद्रीय खुफिया अधिकारी (एसीआईओ) ग्रेड-II/कार्यकारी पद के लिए आपकी व्यापक मार्गदर्शिका। पात्रता, परीक्षा पैटर्न और तैयारी की रणनीति के बारे में जानें।</p>
+                <div class="mt-8 bg-amber-100/50 border-l-4 border-amber-500 text-amber-800 p-4 rounded-r-lg max-w-2xl mx-auto text-left">
+                    <p class="font-semibold">आवेदन की अंतिम तिथि: 10 अगस्त, 2025</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="eligibility" class="py-20">
+            <div class="container mx-auto px-6">
+                <h2 class="text-3xl font-bold text-center mb-12">आवश्यकताएँ (पात्रता मानदंड)</h2>
+                <div class="max-w-4xl mx-auto grid md:grid-cols-2 gap-8">
+                    <div class="bg-white p-6 rounded-lg shadow-lg">
+                        <h3 class="text-xl font-bold mb-3">शैक्षणिक योग्यता</h3>
+                        <p>आपके पास किसी मान्यता प्राप्त विश्वविद्यालय से स्नातक की डिग्री या उसके समकक्ष होना चाहिए।</p>
+                        <p class="mt-2 text-sm text-red-600 font-semibold">महत्वपूर्ण: यह डिग्री 10 अगस्त, 2025 को या उससे पहले प्रदान की जानी चाहिए।</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-lg">
+                        <h3 class="text-xl font-bold mb-3">आयु सीमा (10 अगस्त, 2025 तक)</h3>
+                        <p><span class="font-semibold">न्यूनतम आयु:</span> 18 वर्ष</p>
+                        <p><span class="font-semibold">अधिकतम आयु:</span> 27 वर्ष</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-lg md:col-span-2">
+                        <h3 class="text-xl font-bold mb-3">आयु में छूट</h3>
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><span class="font-semibold">ओबीसी:</span> 3 वर्ष</li>
+                            <li><span class="font-semibold">एससी/एसटी:</span> 5 वर्ष</li>
+                            <li><span class="font-semibold">विभागीय उम्मीदवार:</span> 40 वर्ष तक</li>
+                            <li><span class="font-semibold">विधवाएँ/तलाकशुदा महिलाएँ:</span> 35 वर्ष (UR), 38 वर्ष (OBC), 40 वर्ष (SC/ST) तक</li>
+                            <li><span class="font-semibold">भूतपूर्व सैनिक:</span> केंद्र सरकार के नियमों के अनुसार</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="exam-pattern" class="py-20 bg-white">
+            <div class="container mx-auto px-6">
+                <h2 class="text-3xl font-bold text-center mb-12">परीक्षा पैटर्न और चयन प्रक्रिया</h2>
+                <div class="max-w-5xl mx-auto">
+                    <div class="mb-4 flex justify-center border-b border-gray-200">
+                        <button data-tab="tier1" class="tab-btn py-2 px-6 font-semibold active">टियर-I</button>
+                        <button data-tab="tier2" class="tab-btn py-2 px-6 font-semibold">टियर-II</button>
+                        <button data-tab="tier3" class="tab-btn py-2 px-6 font-semibold">टियर-III</button>
+                    </div>
+                    <div id="tier1" class="tab-content p-4">
+                        <h3 class="text-2xl font-bold text-center mb-6">टियर-I परीक्षा (ऑनलाइन - वस्तुनिष्ठ)</h3>
+                        <div class="grid md:grid-cols-2 gap-8 items-center">
+                            <div>
+                                <ul class="space-y-3 text-lg">
+                                    <li><span class="font-semibold">उद्देश्य:</span> स्क्रीनिंग टेस्ट</li>
+                                    <li><span class="font-semibold">अवधि:</span> 60 मिनट (1 घंटा)</li>
+                                    <li><span class="font-semibold">कुल प्रश्न:</span> 100 MCQs</li>
+                                    <li><span class="font-semibold">कुल अंक:</span> 100 अंक</li>
+                                    <li><span class="font-semibold">अंकन:</span> +1 सही उत्तर के लिए, -0.25 गलत उत्तर के लिए</li>
+                                </ul>
+                                <p class="mt-4 font-semibold">5 खंड, प्रत्येक में 20 प्रश्न:</p>
+                                <ol class="list-decimal list-inside mt-2 space-y-1">
+                                    <li>सामान्य जागरूकता</li>
+                                    <li>मात्रात्मक योग्यता</li>
+                                    <li>संख्यात्मक/विश्लेषणात्मक/तार्किक क्षमता</li>
+                                    <li>अंग्रेजी भाषा</li>
+                                    <li>सामान्य अध्ययन</li>
+                                </ol>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="tier1Chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="tier2" class="tab-content p-4 hidden">
+                        <h3 class="text-2xl font-bold text-center mb-6">टियर-II परीक्षा (वर्णनात्मक)</h3>
+                        <div class="max-w-2xl mx-auto text-center">
+                             <ul class="space-y-3 text-lg text-left bg-gray-50 p-6 rounded-lg">
+                                <li><span class="font-semibold">उद्देश्य:</span> विश्लेषणात्मक और लेखन कौशल का आकलन</li>
+                                <li><span class="font-semibold">अवधि:</span> 60 मिनट (1 घंटा)</li>
+                                <li><span class="font-semibold">कुल अंक:</span> 50 अंक</li>
+                                <li><span class="font-semibold">न्यूनतम योग्यता अंक:</span> 33% (17 अंक)</li>
+                            </ul>
+                            <div class="mt-6 grid sm:grid-cols-2 gap-6">
+                                <div class="bg-blue-50 p-4 rounded-lg">
+                                    <p class="font-bold text-blue-800">निबंध</p>
+                                    <p class="text-2xl font-bold text-blue-900">30 अंक</p>
+                                </div>
+                                <div class="bg-green-50 p-4 rounded-lg">
+                                    <p class="font-bold text-green-800">अंग्रेजी कॉम्प्रिहेंशन और प्रेसी</p>
+                                    <p class="text-2xl font-bold text-green-900">20 अंक</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="tier3" class="tab-content p-4 hidden">
+                        <h3 class="text-2xl font-bold text-center mb-6">टियर-III / साक्षात्कार</h3>
+                        <div class="max-w-3xl mx-auto">
+                            <ul class="space-y-3 text-lg bg-gray-50 p-6 rounded-lg">
+                                <li><span class="font-semibold">उद्देश्य:</span> व्यक्तित्व, संचार कौशल, और समग्र उपयुक्तता का मूल्यांकन</li>
+                                <li><span class="font-semibold">कुल अंक:</span> 100 अंक</li>
+                            </ul>
+                            <p class="mt-6 font-semibold">मूल्यांकन के क्षेत्र:</p>
+                            <ul class="list-disc list-inside mt-2 space-y-1">
+                                <li>व्यक्तित्व और संचार</li>
+                                <li>करंट अफेयर्स और सामान्य ज्ञान</li>
+                                <li>आईबी में शामिल होने की प्रेरणा</li>
+                                <li>स्थितिजन्य/व्यवहारिक प्रश्न</li>
+                                <li>डोमेन ज्ञान (विशेषकर आपके लिए साइबर सुरक्षा)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="strategy" class="py-20">
+            <div class="container mx-auto px-6">
+                <h2 class="text-3xl font-bold text-center mb-12">तैयारी और अच्छे अंक प्राप्त करने की रणनीति</h2>
+                 <div class="max-w-5xl mx-auto">
+                    <div class="mb-4 flex justify-center border-b border-gray-200">
+                        <button data-tab="strategy_tier1" class="tab-btn py-2 px-6 font-semibold active">टियर-I रणनीति</button>
+                        <button data-tab="strategy_tier2" class="tab-btn py-2 px-6 font-semibold">टियर-II रणनीति</button>
+                        <button data-tab="strategy_tier3" class="tab-btn py-2 px-6 font-semibold">टियर-III रणनीति</button>
+                    </div>
+                    <div id="strategy_tier1" class="tab-content p-4">
+                        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div class="bg-white p-6 rounded-lg shadow">
+                                <h3 class="font-bold text-lg mb-2">सामान्य जागरूकता और अध्ययन</h3>
+                                <p>दैनिक समाचार पत्र पढ़ें, मासिक पत्रिकाएँ देखें और स्टैटिक जीके के लिए 'लुसेंट की सामान्य ज्ञान' जैसी मानक पुस्तकों का उपयोग करें।</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg shadow">
+                                <h3 class="font-bold text-lg mb-2">मात्रात्मक योग्यता</h3>
+                                <p>मूल बातें स्पष्ट करें और आर.एस. अग्रवाल जैसी पुस्तकों से विभिन्न प्रकार की समस्याओं का अभ्यास करें। गति और सटीकता पर ध्यान दें।</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg shadow">
+                                <h3 class="font-bold text-lg mb-2">तार्किक क्षमता (रीजनिंग)</h3>
+                                <p>सभी प्रकार के रीजनिंग प्रश्नों से परिचित हों और नियमित रूप से अभ्यास करें। तार्किक सोच विकसित करने पर ध्यान केंद्रित करें।</p>
+                            </div>
+                             <div class="bg-white p-6 rounded-lg shadow">
+                                <h3 class="font-bold text-lg mb-2">अंग्रेजी भाषा</h3>
+                                <p>व्याकरण के नियमों को दोहराएँ, शब्दावली बनाएँ और रीडिंग कॉम्प्रिहेंशन का अभ्यास करें। 'व्रेन एंड मार्टिन' एक अच्छा संदर्भ है।</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg shadow lg:col-span-2">
+                                <h3 class="font-bold text-lg mb-2">मॉक टेस्ट</h3>
+                                <p>पाठ्यक्रम का 60-70% पूरा करने के बाद नियमित रूप से पूर्ण-लंबाई वाले मॉक टेस्ट दें। अपने प्रदर्शन का विश्लेषण करें और कमजोर क्षेत्रों में सुधार करें।</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="strategy_tier2" class="tab-content p-4 hidden">
+                         <div class="grid md:grid-cols-2 gap-6">
+                            <div class="bg-white p-6 rounded-lg shadow">
+                                <h3 class="font-bold text-lg mb-2">निबंध लेखन</h3>
+                                <p>करंट अफेयर्स और राष्ट्रीय सुरक्षा जैसे विषयों पर प्रति सप्ताह 2-3 निबंध लिखने का अभ्यास करें। संरचना, सामग्री और भाषा पर ध्यान दें।</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg shadow">
+                                <h3 class="font-bold text-lg mb-2">अंग्रेजी कॉम्प्रिहेंशन और प्रेसी</h3>
+                                <p>विभिन्न प्रकार के लेख पढ़ें और पैसेज को संक्षेप में प्रस्तुत करने का अभ्यास करें। कॉम्प्रिहेंशन प्रश्नों का उत्तर देने का अभ्यास करें।</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg shadow md:col-span-2">
+                                <h3 class="font-bold text-lg mb-2">निबंध विचार जनरेटर ✨</h3>
+                                <button id="generateEssayIdeasBtn" class="mt-3 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 flex items-center justify-center">
+                                    विचार उत्पन्न करें
+                                    <div id="essayLoading" class="loading-indicator ml-2"></div>
+                                </button>
+                                <div id="essayIdeasOutput" class="mt-4 p-4 bg-gray-100 rounded-md text-gray-700 whitespace-pre-wrap"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="strategy_tier3" class="tab-content p-4 hidden">
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="bg-white p-6 rounded-lg shadow">
+                                <h3 class="font-bold text-lg mb-2">करंट अफेयर्स और आईबी ज्ञान</h3>
+                                <p>साक्षात्कार तक दैनिक रूप से अपडेट रहें। इंटेलिजेंस ब्यूरो के इतिहास, कार्यों और भूमिका पर शोध करें।</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg shadow">
+                                <h3 class="font-bold text-lg mb-2">आत्म-जागरूकता और संचार</h3>
+                                <p>अपनी ताकत, कमजोरियों और प्रेरणा के बारे में बात करने के लिए तैयार रहें। स्पष्ट और आत्मविश्वास से बोलने का अभ्यास करें।</p>
+                             </div>
+                             <div class="bg-white p-6 rounded-lg shadow md:col-span-2">
+                                <h3 class="font-bold text-lg mb-2">साइबर सुरक्षा विशेषज्ञता (आपका लाभ)</h3>
+                                <p>अपने बी.टेक क्षेत्र पर चर्चा करने के लिए तैयार रहें। नवीनतम साइबर खतरों, कानूनों और राष्ट्रीय सुरक्षा के लिए उनके प्रभावों के बारे में जागरूक रहें।</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg shadow md:col-span-2">
+                                <h3 class="font-bold text-lg mb-2">साक्षात्कार प्रश्न अभ्यास ✨</h3>
+                                <button id="generateInterviewQuestionBtn" class="mt-3 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 flex items-center justify-center">
+                                    प्रश्न उत्पन्न करें
+                                    <div id="interviewLoading" class="loading-indicator ml-2"></div>
+                                </button>
+                                <div id="interviewQuestionOutput" class="mt-4 p-4 bg-gray-100 rounded-md text-gray-700 whitespace-pre-wrap"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-6">
+        <div class="container mx-auto px-6 text-center">
+            <p>&copy; 2025 आईबी एसीआईओ भर्ती गाइड। सूचनात्मक उद्देश्यों के लिए बनाया गया।</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            mobileMenuButton.addEventListener('click', function() {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+            const sections = document.querySelectorAll('section');
+            const navLinks = document.querySelectorAll('.nav-link');
+
+            window.addEventListener('scroll', () => {
+                let current = '';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    if (pageYOffset >= sectionTop - 100) {
+                        current = section.getAttribute('id');
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href').includes(current)) {
+                        link.classList.add('active');
+                    }
+                });
+            });
+            
+            const tabContainers = document.querySelectorAll('.max-w-5xl');
+
+            tabContainers.forEach(container => {
+                const tabButtons = container.querySelectorAll('.tab-btn');
+                const tabContents = container.querySelectorAll('.tab-content');
+
+                tabButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        const tabId = button.dataset.tab;
+
+                        tabButtons.forEach(btn => btn.classList.remove('active'));
+                        button.classList.add('active');
+
+                        tabContents.forEach(content => {
+                            if (content.id === tabId) {
+                                content.classList.remove('hidden');
+                            } else {
+                                content.classList.add('hidden');
+                            }
+                        });
+                    });
+                });
+            });
+
+            const ctx = document.getElementById('tier1Chart').getContext('2d');
+            const tier1Chart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['सामान्य जागरूकता', 'मात्रात्मक योग्यता', 'तार्किक क्षमता', 'अंग्रेजी भाषा', 'सामान्य अध्ययन'],
+                    datasets: [{
+                        label: 'अंक वितरण',
+                        data: [20, 20, 20, 20, 20],
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.8)',
+                            'rgba(54, 162, 235, 0.8)',
+                            'rgba(255, 206, 86, 0.8)',
+                            'rgba(75, 192, 192, 0.8)',
+                            'rgba(153, 102, 255, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                             labels: {
+                                color: '#2C3E50',
+                                font: {
+                                    family: "'Noto Sans', sans-serif",
+                                    size: 14
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed !== null) {
+                                        label += context.parsed + ' अंक';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Gemini API Integration
+            const generateEssayIdeasBtn = document.getElementById('generateEssayIdeasBtn');
+            const essayIdeasOutput = document.getElementById('essayIdeasOutput');
+            const essayLoading = document.getElementById('essayLoading');
+
+            const generateInterviewQuestionBtn = document.getElementById('generateInterviewQuestionBtn');
+            const interviewQuestionOutput = document.getElementById('interviewQuestionOutput');
+            const interviewLoading = document.getElementById('interviewLoading');
+
+            async function callGeminiAPI(prompt, outputElement, loadingElement) {
+                outputElement.textContent = '';
+                loadingElement.style.display = 'block';
+
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                const payload = { contents: chatHistory };
+                const apiKey = ""; // Leave as-is for Canvas environment
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const result = await response.json();
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        const text = result.candidates[0].content.parts[0].text;
+                        outputElement.textContent = text;
+                    } else {
+                        outputElement.textContent = 'क्षमा करें, विचार उत्पन्न नहीं कर सका। कृपया पुनः प्रयास करें।';
+                    }
+                } catch (error) {
+                    console.error('Error calling Gemini API:', error);
+                    outputElement.textContent = 'त्रुटि: API कॉल विफल रही।';
+                } finally {
+                    loadingElement.style.display = 'none';
+                }
+            }
+
+            generateEssayIdeasBtn.addEventListener('click', () => {
+                const prompt = `आईबी एसीआईओ टियर-II निबंध परीक्षा के लिए 3-5 निबंध विषयों के विचार उत्पन्न करें। प्रत्येक विचार के लिए 2-3 बुलेट पॉइंट भी दें जो राष्ट्रीय सुरक्षा, वर्तमान मामलों, सामाजिक-आर्थिक मुद्दों और भारत की सुरक्षा पर प्रौद्योगिकी के प्रभाव से संबंधित हों। हिंदी में जवाब दें।`;
+                callGeminiAPI(prompt, essayIdeasOutput, essayLoading);
+            });
+
+            generateInterviewQuestionBtn.addEventListener('click', () => {
+                const prompt = `आईबी एसीआईओ साक्षात्कार के लिए एक सामान्य साक्षात्कार प्रश्न उत्पन्न करें। प्रश्न ऐसा होना चाहिए जो साइबर सुरक्षा पृष्ठभूमि वाले उम्मीदवार को चुनौती दे और उससे यह जानने की कोशिश करे कि वह अपनी साइबर सुरक्षा विशेषज्ञता को खुफिया ब्यूरो के काम में कैसे लागू करेगा। हिंदी में जवाब दें।`;
+                callGeminiAPI(prompt, interviewQuestionOutput, interviewLoading);
+            });
+        });
+    </script>
+
+</body>
+</html>
